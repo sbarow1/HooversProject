@@ -15,8 +15,7 @@ class HooversGrabber(MyHoovers):
         input('Select the right company')
         
         # Go to View More People
-        morePeopleElem = self.driver.find_element_by_link_text('View More People')
+        morePeopleElem = self.browser.find_element_by_link_text('View More People')
         morePeopleElem.click()
-
     
         
