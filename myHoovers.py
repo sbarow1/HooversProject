@@ -7,34 +7,32 @@ import time
 from selenium import webdriver
 import csv
 from selenium.common.exceptions import NoSuchElementException
+from mySiteObject import MySiteObject
 
-class MyHoovers():
+class MyHoovers(MySiteObject):
     '''
     This class contains the functions I use to interact with Hoovers
     '''
-    def __init__(self, keyfile='keyfile.txt'):
+    def __init__(self, keyfile='/users/seanbarow/git/hooversproject/hooversproject/src/root/keyfile.txt'):
         '''
         Constructor
         '''
-        with open(keyfile, 'r', encoding='utf-8') as f:
-            keys = f.read().split()
-            
-        if len(keys) != 2:
-            raise RuntimeError('Incorrect number of keys found in ' + keyfile)
-        
-        username, password = keys
+        MySiteObject.__init__(self, keyfile)
         
         # Open a Hoover's instance to find the correct email address
-        driverH = webdriver.Chrome('/users/seanbarow/pySean/chromedriver')
-        driverH.get('https://subscriber.hoovers.com/H/login/login.html')
-        self.driver = driverH
+        self.browser = webdriver.Chrome('/users/seanbarow/pySean/chromedriver')
+        self.browser.get('https://subscriber.hoovers.com/H/login/login.html')
         time.sleep(5)
-        hooverUserElem = driverH.find_element_by_css_selector('input#j_username.textInput')
-        hooverUserElem.send_keys(username)
-        hooverPassElem = driverH.find_element_by_css_selector('input#j_password.textInput')
-        hooverPassElem.send_keys(password)
-        hooverPassElem.submit()
-        time.sleep(5)
+        try:
+            hooverUserElem = self.browser.find_element_by_css_selector('input#j_username.textInput')
+            hooverUserElem.send_keys(self.username)
+            hooverPassElem = self.browser.find_element_by_css_selector('input#j_password.textInput')
+            hooverPassElem.send_keys(self.password)
+            hooverPassElem.submit()
+            time.sleep(5)
+        except Exception as E:
+            self.closeBrowser()
+            print(E)
         
     def prospector(self):
         '''
@@ -47,20 +45,20 @@ class MyHoovers():
             if answer == 'y':
                 # Grab Name
                 try:
-                    firstName = self.driver.find_element_by_css_selector('span.given-name').text
-                    lastName  = self.driver.find_element_by_css_selector('span.family-name').text                
-                    title     = self.driver.find_element_by_css_selector('span.title').text
-                    company   = self.driver.find_element_by_class_name('org').text
-                    street    = self.driver.find_element_by_css_selector('div.street-address').text
-                    city      = self.driver.find_element_by_css_selector('span.locality').text
-                    state     = self.driver.find_element_by_css_selector('abbr.region').text
-                    zipCode   = self.driver.find_element_by_css_selector('span.postal-code').text
-                    country   = self.driver.find_element_by_css_selector('div.country-name').text               
+                    firstName = self.browser.find_element_by_css_selector('span.given-name').text
+                    lastName  = self.browser.find_element_by_css_selector('span.family-name').text                
+                    title     = self.browser.find_element_by_css_selector('span.title').text
+                    company   = self.browser.find_element_by_class_name('org').text
+                    street    = self.browser.find_element_by_css_selector('div.street-address').text
+                    city      = self.browser.find_element_by_css_selector('span.locality').text
+                    state     = self.browser.find_element_by_css_selector('abbr.region').text
+                    zipCode   = self.browser.find_element_by_css_selector('span.postal-code').text
+                    country   = self.browser.find_element_by_css_selector('div.country-name').text               
                 except NoSuchElementException:
                     print('One of the elements does not exist')
                     continue
                 try:
-                    emailAddr = self.driver.find_element_by_css_selector('a.email').text
+                    emailAddr = self.browser.find_element_by_css_selector('a.email').text
                 except NoSuchElementException:
                     decision = input('No email, is that okay?')
                     if decision == 'y':
@@ -79,7 +77,7 @@ class MyHoovers():
         '''
         This will search Hoovers for the correct page
         '''
-        hooverSearchElem = self.driver.find_element_by_name('searchValue')
+        hooverSearchElem = self.browser.find_element_by_name('searchValue')
         hooverSearchElem.send_keys(myText)
         hooverSearchElem.submit()
         
@@ -89,7 +87,7 @@ class MyHoovers():
         input('Select the right company')
 
         # Go to View More People
-        morePeopleElem = self.driver.find_element_by_link_text('View More People')
+        morePeopleElem = self.browser.find_element_by_link_text('View More People')
         morePeopleElem.click()
                
     def csvCreator(self, header, filename, rows):
@@ -101,6 +99,3 @@ class MyHoovers():
             f_csv.writerow(header)
             f_csv.writerows(rows)
             
-    def closeBrowser(self):
-        self.driver.close()
-        print('Goodbye!')
